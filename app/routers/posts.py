@@ -6,7 +6,8 @@ import schemas
 import models
 
 router = APIRouter(
-    prefix="/posts"
+    prefix="/posts",
+    tags=['Posts']
 )
 
 @router.get("/", response_model=List[schemas.PostResponse])
