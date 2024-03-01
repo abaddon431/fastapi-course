@@ -25,3 +25,13 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     id: int
     created_at : datetime
+
+# Tokens
+    
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    user_id: str | None = None
+
