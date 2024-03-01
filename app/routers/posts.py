@@ -4,6 +4,8 @@ from database import get_db
 from typing import List
 import schemas
 import models
+import oauth2
+
 
 router = APIRouter(
     prefix="/posts",
@@ -16,7 +18,7 @@ async def get_posts(db: Session = Depends(get_db)):
     return posts
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
-async def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
+async def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
     new_post = models.Posts(**post.model_dump())
     db.add(new_post)
     db.commit()
