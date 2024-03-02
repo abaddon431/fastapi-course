@@ -13,12 +13,12 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=List[schemas.PostResponse])
-async def get_posts(db: Session = Depends(get_db)):
+async def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     posts = db.query(models.Posts).all()
     return posts
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
-async def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+async def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     new_post = models.Posts(**post.model_dump())
     db.add(new_post)
     db.commit()
@@ -26,14 +26,14 @@ async def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), u
     return new_post
 
 @router.get("/latest", response_model=schemas.PostResponse)
-async def get_latest_post(db: Session = Depends(get_db)):
+async def get_latest_post(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     latest = db.query(models.Posts).order_by(models.Posts.id.desc()).first() 
     if not latest: 
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"There are no posts")
     return latest
 
 @router.get("/{id}", response_model=schemas.PostResponse)
-async def get_post(id: int, db: Session = Depends(get_db)):
+async def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     post = db.query(models.Posts).filter(
         models.Posts.id == id
     ).first()
@@ -42,7 +42,7 @@ async def get_post(id: int, db: Session = Depends(get_db)):
     return post
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(id: int, db: Session = Depends(get_db)):
+async def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     post = db.query(models.Posts).filter(
         models.Posts.id == id
     ).first()
@@ -53,7 +53,7 @@ async def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.put("/{id}", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
-async def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
+async def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     post_query = db.query(models.Posts).filter(models.Posts.id == id)
     post_data= post_query.first()
     if not post_data:
