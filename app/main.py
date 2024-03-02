@@ -12,5 +12,5 @@ app.include_router(auth.router)
 
 
 @app.get("/")
-async def root():
+def root():
     return Response(status_code=status.HTTP_204_NO_CONTENT)
