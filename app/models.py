@@ -5,7 +5,7 @@ from database import Base
 class Posts(Base):
     __tablename__ = "posts"
     id = Column(Integer, nullable=False, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
     published = Column(Boolean, server_default='True')
