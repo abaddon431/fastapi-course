@@ -1,10 +1,11 @@
-from sqlalchemy import Column, Integer, Boolean, TIMESTAMP, String
+from sqlalchemy import Column, Integer, Boolean, TIMESTAMP, String, ForeignKey
 from sqlalchemy.sql import func
 from database import Base
 
 class Posts(Base):
     __tablename__ = "posts"
     id = Column(Integer, nullable=False, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
     title = Column(String, nullable=False)
     content = Column(String, nullable=False)
     published = Column(Boolean, server_default='True')
