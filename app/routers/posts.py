@@ -14,9 +14,7 @@ router = APIRouter(
 
 @router.get("/", response_model=List[schemas.PostResponse])
 def get_posts(db: Session = Depends(get_db), current_user: models.Users = Depends(oauth2.get_current_user)):
-    posts = db.query(models.Posts).filter(
-        models.Posts.user_id == current_user.id
-    ).all()
+    posts = db.query(models.Posts).all()
     return posts
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
@@ -29,9 +27,7 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current
 
 @router.get("/latest", response_model=schemas.PostResponse)
 def get_latest_post(db: Session = Depends(get_db), current_user: models.Users = Depends(oauth2.get_current_user)):
-    latest = db.query(models.Posts).filter(
-        models.Posts.user_id == current_user.id
-    ).order_by(models.Posts.id.desc()).first() 
+    latest = db.query(models.Posts).order_by(models.Posts.id.desc()).first() 
     if not latest: 
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"There are no posts")
     return latest
@@ -43,8 +39,6 @@ def get_post(id: int, db: Session = Depends(get_db), current_user: models.Users 
     ).first()
     if not post:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"post with id {id} was not found")
-    if post.user_id != current_user.id:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, detail=f"Hey man that is not cool :(")
     return post
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
