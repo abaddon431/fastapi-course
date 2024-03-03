@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, Boolean, TIMESTAMP, String, ForeignKey
 from sqlalchemy.sql import func
+from sqlalchemy.orm import Relationship
 from database import Base
 
 class Posts(Base):
@@ -10,8 +11,7 @@ class Posts(Base):
     content = Column(String, nullable=False)
     published = Column(Boolean, server_default='True')
     created_at = Column(TIMESTAMP(timezone=True),server_default=func.now())
-
-
+    owner = Relationship("Users")
 
 class Users(Base):
     __tablename__ = "users"
