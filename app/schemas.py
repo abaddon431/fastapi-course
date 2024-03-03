@@ -28,6 +28,13 @@ class PostResponse(PostBase):
     class Config:
         from_attributes = True
 
+class PostResponseVote(BaseModel):
+    post: PostResponse
+    votes: int
+
+class Vote(BaseModel):
+    post_id: int
+    vote_dir: int
 
 
 # Tokens

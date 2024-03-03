@@ -1,5 +1,6 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from database import get_db
 from typing import List, Optional
 import schemas
@@ -12,13 +13,22 @@ router = APIRouter(
     tags=['Posts']
 )
 
-@router.get("/", response_model=List[schemas.PostResponse])
+@router.get("/", response_model=List[schemas.PostResponseVote])
 def get_posts(db: Session = Depends(get_db), current_user: models.Users = Depends(oauth2.get_current_user),
 limit: int = 10, offset: int = 0, search: Optional[str] = ""):
-    posts = db.query(models.Posts).filter(
+    posts = db.query(
+        models.Posts, func.count(models.Votes.post_id).label("likes")
+    ).join(
+        models.Votes,
+        models.Posts.id == models.Votes.post_id,
+        isouter=True
+    ).group_by(
+        models.Posts.id
+    ).filter(
         models.Posts.title.contains(search)
     ).limit(limit).offset(offset).all()
-    return posts
+    posts_new = [{"post": post, "votes": votes} for post, votes in posts]
+    return posts_new
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: models.Users = Depends(oauth2.get_current_user)):
@@ -28,20 +38,39 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current
     db.refresh(new_post) 
     return new_post
 
-@router.get("/latest", response_model=schemas.PostResponse)
+@router.get("/latest", response_model=schemas.PostResponseVote)
 def get_latest_post(db: Session = Depends(get_db), current_user: models.Users = Depends(oauth2.get_current_user)):
-    latest = db.query(models.Posts).order_by(models.Posts.id.desc()).first() 
+    # latest = db.query(models.Posts).order_by(models.Posts.id.desc()).first() 
+    latest = db.query(
+        models.Posts, func.count(models.Votes.post_id).label("likes")
+    ).join(
+        models.Votes,
+        models.Posts.id == models.Votes.post_id,
+        isouter=True
+    ).group_by(
+        models.Posts.id
+    ).order_by(models.Posts.id.desc()).first()
     if not latest: 
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"There are no posts")
+    latest = {"post":latest[0], "votes": latest[1]}
     return latest
 
-@router.get("/{id}", response_model=schemas.PostResponse)
+@router.get("/{id}", response_model=schemas.PostResponseVote)
 def get_post(id: int, db: Session = Depends(get_db), current_user: models.Users = Depends(oauth2.get_current_user)):
-    post = db.query(models.Posts).filter(
+    post = db.query(
+        models.Posts, func.count(models.Votes.post_id).label("likes")
+    ).join(
+        models.Votes,
+        models.Posts.id == models.Votes.post_id,
+        isouter=True
+    ).group_by(
+        models.Posts.id
+    ).filter(
         models.Posts.id == id
     ).first()
     if not post:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"post with id {id} was not found")
+    post = {"Post":post[0], "votes":post[1]}
     return post
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
