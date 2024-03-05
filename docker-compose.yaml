@@ -13,7 +13,7 @@ services:
       database:
         condition: service_healthy
     env_file:
-      - .env
+      - /app/.env
     command: ["uvicorn","main:app","--host","0.0.0.0","--port","8000","--reload"]
   database:
     image: postgres:latest
